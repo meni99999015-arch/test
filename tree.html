@@ -3,153 +3,534 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>עץ הידע - מפת האתר</title>
+<title>עץ הידע - מושג (Concept)</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
 <style>
-  body { font-family: Arial, sans-serif; background: #0d1117; color: #e6edf3; margin: 0; padding: 20px; }
-  h1 { text-align: center; color: #58a6ff; font-size: 2em; margin-bottom: 5px; }
-  .subtitle { text-align: center; color: #8b949e; margin-bottom: 20px; font-size: 0.95em; }
-  .stats-bar { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-bottom: 30px; }
-  .stat-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 15px 25px; text-align: center; min-width: 130px; }
-  .stat-card .num { font-size: 2.2em; font-weight: bold; color: #58a6ff; }
-  .stat-card .label { font-size: 0.8em; color: #8b949e; margin-top: 4px; }
-  .progress-wrap { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 20px; margin-bottom: 30px; max-width: 700px; margin-left: auto; margin-right: auto; }
-  .progress-title { text-align: center; margin-bottom: 10px; font-size: 1em; color: #8b949e; }
-  .progress-bar-bg { background: #21262d; border-radius: 20px; height: 22px; overflow: hidden; }
-  .progress-bar-fill { background: linear-gradient(90deg, #238636, #58a6ff); height: 100%; border-radius: 20px; transition: width 1s; }
-  .progress-pct { text-align: center; margin-top: 8px; font-size: 1.1em; color: #58a6ff; }
-  .tree-container { max-width: 900px; margin: 0 auto; }
-  .node { margin: 6px 0; }
-  .node-header { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px 14px; border-radius: 8px; background: #161b22; border: 1px solid #30363d; transition: background 0.2s; }
-  .node-header:hover { background: #21262d; }
-  .node-toggle { color: #58a6ff; font-weight: bold; font-size: 1.1em; width: 16px; }
-  .node-name { font-weight: bold; }
-  .node-count { margin-right: auto; background: #21262d; border-radius: 12px; padding: 2px 10px; font-size: 0.8em; color: #8b949e; }
-  .children { margin-right: 24px; display: none; }
-  .children.open { display: block; }
-  .leaf { padding: 6px 14px; border-radius: 6px; margin: 3px 0; background: #0d1117; border: 1px solid #21262d; color: #c9d1d9; font-size: 0.9em; }
-  .tag { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 0.75em; margin-right: 6px; }
-  .tag-concept { background: #1f6feb33; color: #58a6ff; border: 1px solid #1f6feb; }
-  .tag-process { background: #23863633; color: #3fb950; border: 1px solid #238636; }
-  .tag-entity { background: #9e6a0333; color: #d29922; border: 1px solid #9e6a03; }
-  .tag-repr { background: #8957e533; color: #bc8cff; border: 1px solid #8957e5; }
-  .tag-relation { background: #bf4b8a33; color: #f778ba; border: 1px solid #bf4b8a; }
-  .tag-property { background: #1b7c8333; color: #39d353; border: 1px solid #1b7c83; }
-  .tag-matter { background: #da3633; color: #fff; border: 1px solid #da3633; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background:#0a0e27; color:#e0e6ed; direction:rtl; }
+#header { text-align:center; padding:20px; background:linear-gradient(135deg, #1a1f3a 0%, #0a0e27 100%); border-bottom:2px solid #2d3561; }
+h1 { font-size:2.2rem; color:#7dd3fc; margin-bottom:8px; text-shadow:0 0 20px rgba(125,211,252,0.3); }
+.subtitle { color:#94a3b8; font-size:0.95rem; }
+#controls { text-align:center; padding:15px; background:#0f1429; border-bottom:1px solid #1e293b; }
+#controls button { margin:4px 8px; padding:10px 20px; border:2px solid #334155; border-radius:25px; cursor:pointer; font-size:0.9rem; font-weight:600; background:#1e293b; color:#cbd5e1; transition:all 0.3s; }
+#controls button:hover { background:#334155; border-color:#475569; transform:translateY(-2px); }
+#controls button.active { background:linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color:#fff; border-color:#3b82f6; box-shadow:0 0 15px rgba(59,130,246,0.5); }
+#main-container { padding:20px; max-width:1400px; margin:0 auto; }
+#tree-view, #full-view, #treemap-view, #stats-view, #search-view { display:none; }
+#stats-view { padding:30px; }
+.stat-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:20px; margin-bottom:30px; }
+.stat-card { background:#1e293b; border:1px solid #334155; border-radius:12px; padding:20px; text-align:center; transition:transform 0.2s; }
+.stat-card:hover { transform:translateY(-5px); box-shadow:0 5px 20px rgba(59,130,246,0.2); }
+.stat-num { font-size:2.5rem; font-weight:bold; color:#7dd3fc; margin-bottom:8px; }
+.stat-label { color:#94a3b8; font-size:0.9rem; }
+svg { width:100%; height:70vh; }
+.node-circle { cursor:pointer; transition:all 0.2s; }
+.node-circle:hover { filter:brightness(1.3); }
+.node-text { font-size:13px; fill:#e0e6ed; pointer-events:none; }
+.link { fill:none; stroke:#475569; stroke-width:2px; opacity:0.6; }
+#tree-list { max-height:75vh; overflow-y:auto; background:#0f1429; border-radius:10px; padding:15px; }
+.tree-item { padding:12px; margin:8px 0; background:#1e293b; border-radius:8px; border-right:4px solid #3b82f6; cursor:pointer; transition:all 0.2s; }
+.tree-item:hover { background:#334155; transform:translateX(-5px); }
+.tree-item.level-1 { margin-right:0; font-size:1.1rem; font-weight:bold; border-right-width:5px; }
+.tree-item.level-2 { margin-right:20px; border-right-color:#8b5cf6; }
+.tree-item.level-3 { margin-right:40px; font-size:0.95rem; border-right-color:#ec4899; }
+.tree-item.level-4 { margin-right:60px; font-size:0.9rem; border-right-color:#f59e0b; }
+.tree-item.level-5 { margin-right:80px; font-size:0.85rem; border-right-color:#10b981; }
+.toggle-icon { display:inline-block; width:20px; text-align:center; margin-left:8px; }
+.children-container { margin-top:8px; display:none; }
+.children-container.open { display:block; }
+#search-box { width:100%; max-width:600px; padding:15px 20px; font-size:1.1rem; border:2px solid #334155; border-radius:30px; background:#1e293b; color:#e0e6ed; margin:20px auto; display:block; }
+#search-box:focus { outline:none; border-color:#3b82f6; box-shadow:0 0 15px rgba(59,130,246,0.3); }
+.highlight { background:#fbbf24; color:#000; padding:2px 6px; border-radius:4px; }
+#tooltip { position:fixed; background:rgba(15,20,41,0.95); color:#fff; padding:10px 16px; border-radius:10px; font-size:0.9rem; pointer-events:none; display:none; z-index:1000; max-width:250px; border:1px solid #3b82f6; box-shadow:0 4px 20px rgba(0,0,0,0.5); }
+::-webkit-scrollbar { width:10px; }
+::-webkit-scrollbar-track { background:#0f1429; }
+::-webkit-scrollbar-thumb { background:#334155; border-radius:5px; }
+::-webkit-scrollbar-thumb:hover { background:#475569; }
 </style>
 </head>
 <body>
-<h1>עץ הידע</h1>
-<div class="subtitle">מפת האתר - כולל מצב סטטיסטיקה</div>
-
-<div class="stats-bar">
-  <div class="stat-card"><div class="num" id="total">22</div><div class="label">צמתים ידועים כרגע</div></div>
-  <div class="stat-card"><div class="num">1500</div><div class="label">יעד</div></div>
-  <div class="stat-card"><div class="num">6</div><div class="label">ענפי-על מהשורש</div></div>
-  <div class="stat-card"><div class="num">10</div><div class="label">בנים תחת יחס-זמני</div></div>
-  <div class="stat-card"><div class="num">3</div><div class="label">רמות עומק שנצפו</div></div>
+<div id="header">
+  <h1>🌳 עץ הידע - מושג (Concept)</h1>
+  <div class="subtitle">מערכת טקסונומית היררכית מלאה</div>
 </div>
-
-<div class="progress-wrap">
-  <div class="progress-title">התקדמות לקראת 1500 ערכים</div>
-  <div class="progress-bar-bg"><div class="progress-bar-fill" id="pbar" style="width:1.47%"></div></div>
-  <div class="progress-pct">22 / 1500 &nbsp;&#x2022;&nbsp; 1.47%</div>
+<div id="controls">
+  <button onclick="showTreeView()" id="btnTree">🌲 עץ אינטראקטיבי</button>
+  <button onclick="showFullView()" id="btnFull" class="active">📋 תצוגה מלאה</button>
+  <button onclick="showTreemap()" id="btnTreemap">🗺️ מפת חום</button>
+  <button onclick="showStats()" id="btnStats">📊 סטטיסטיקה</button>
+  <button onclick="showSearch()" id="btnSearch">🔍 חיפוש</button>
 </div>
-
-<div class="tree-container">
-  <div class="node">
-    <div class="node-header" onclick="toggle(this)">
-      <span class="node-toggle">&#9654;</span>
-      <span class="tag tag-concept">Concept</span>
-      <span class="node-name">מושג</span>
-      <span class="node-count">שורש המערכת</span>
-    </div>
-    <div class="children">
-      <div class="node">
-        <div class="node-header" onclick="toggle(this)">
-          <span class="node-toggle">&#9654;</span>
-          <span class="tag tag-process">Process</span>
-          <span class="node-name">תהליך</span>
-          <span class="node-count">ענף-על מתוך דף השורש</span>
-        </div>
-        <div class="children">
-          <div class="leaf">יצוג</div>
-          <div class="leaf">יחס</div>
-          <div class="leaf">תכונה</div>
-        </div>
-      </div>
-      <div class="node">
-        <div class="node-header" onclick="toggle(this)">
-          <span class="node-toggle">&#9654;</span>
-          <span class="tag tag-entity">Entity</span>
-          <span class="node-name">ישות</span>
-          <span class="node-count">ענף-על - זהו צמתים משוייכים בסביבת הדף הראשי</span>
-        </div>
-        <div class="children">
-          <div class="node">
-            <div class="node-header" onclick="toggle(this)">
-              <span class="node-toggle">&#9654;</span>
-              <span class="tag tag-relation">Relation</span>
-              <span class="node-name">יחס</span>
-              <span class="node-count">12 בנים</span>
-            </div>
-            <div class="children">
-              <div class="leaf">יחס-זמני</div>
-              <div class="leaf">יחס-מרחבי</div>
-              <div class="leaf">יחס-סיבתי</div>
-              <div class="leaf">יחס-לוגי</div>
-              <div class="leaf">יחס-מתמטי</div>
-              <div class="leaf">יחס-חברתי</div>
-              <div class="leaf">יחס-כמותי</div>
-              <div class="leaf">יחס-אונטולוגי</div>
-              <div class="leaf">יחס-אפיסטמי</div>
-              <div class="leaf">יחס-תפקודי</div>
-              <div class="leaf">יחס-ביולוגי</div>
-              <div class="leaf">יחס-מודאלי</div>
-            </div>
-          </div>
-          <div class="node">
-            <div class="node-header" onclick="toggle(this)">
-              <span class="node-toggle">&#9654;</span>
-              <span class="tag tag-property">Property</span>
-              <span class="node-name">תכונה</span>
-              <span class="node-count">6 בנים</span>
-            </div>
-            <div class="children">
-              <div class="leaf">תכונה פיזית</div>
-              <div class="leaf">תכונה כימית</div>
-              <div class="leaf">תכונה ביולוגית</div>
-              <div class="leaf">תכונה מתמטית</div>
-              <div class="leaf">תכונה חברתית</div>
-              <div class="leaf">תכונה נפשית</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="node">
-        <div class="node-header" onclick="toggle(this)">
-          <span class="node-toggle">&#9654;</span>
-          <span class="tag tag-matter">Matter</span>
-          <span class="node-name">חומר</span>
-          <span class="node-count">צומת משוך</span>
-        </div>
-        <div class="children">
-          <div class="leaf">חומר אורגני</div>
-          <div class="leaf">חומר אנאורגני</div>
-        </div>
-      </div>
-    </div>
+<div id="main-container">
+  <div id="tree-view"><svg id="tree-svg"></svg></div>
+  <div id="full-view"><div id="tree-list"></div></div>
+  <div id="treemap-view"><svg id="treemap-svg"></svg></div>
+  <div id="stats-view"></div>
+  <div id="search-view">
+    <input type="text" id="search-box" placeholder="חפש מושג...">
+    <div id="search-results"></div>
   </div>
 </div>
+<div id="tooltip"></div>
 
 <script>
-function toggle(el) {
-  const arrow = el.querySelector('.node-toggle');
-  const children = el.nextElementSibling;
-  if (children && children.classList.contains('children')) {
-    children.classList.toggle('open');
-    arrow.innerHTML = children.classList.contains('open') ? '&#9660;' : '&#9654;';
-  }
+const data = {
+  name: "מושג (Concept)",
+  children: [
+    {
+      name: "תהליך (Process)",
+      color: "#3b82f6",
+      children: [
+        {
+          name: "תהליך-פיזי",
+          children: [
+            {name:"כוח"},{name:"גל"},{name:"אור"},{name:"חום"},{name:"קול"},
+            {name:"אנרגיה"},{name:"כבידה"},{name:"מגנטיות"},{name:"תנועה"},
+            {name:"לחץ"},{name:"חשמל"},{name:"זרימה"},{name:"התנגשות"},
+            {name:"רטט"},{name:"חיכוך"}
+          ]
+        },
+        {
+          name: "תהליך-ביולוגי",
+          children: [
+            {name:"מטבוליזם"},{name:"עיכול"},{name:"נשימה"},{name:"תסיסה"},
+            {name:"פוטוסינתזה"},{name:"הזדקנות"},{name:"ריפוי"},{name:"חיסון"},
+            {name:"גדילה"},{name:"התפתחות"},{name:"דלקת"},{name:"ספיגה"},
+            {name:"הפרשה"},{name:"מוות"},{name:"רבייה"}
+          ]
+        },
+        {
+          name: "תהליך-קוגניטיבי",
+          children: [
+            {name:"תפיסה"},{name:"תשומת-לב"},{name:"למידה"},{name:"זיכרון"},
+            {name:"חשיבה"},{name:"דמיון"},{name:"פתרון-בעיות"},{name:"שיפוט"},
+            {name:"הנמקה"},{name:"יצירתיות"},{name:"קבלת-החלטות"},
+            {name:"הכרה"},{name:"מטא-קוגניציה"},{name:"קטגוריזציה"},{name:"הבנה"}
+          ]
+        },
+        {
+          name: "תהליך-יצירתי",
+          children: [
+            {name:"הלחנה"},{name:"עיצוב"},{name:"אימפרוביזציה"},{name:"ציור"},
+            {name:"המצאה"},{name:"ביטוי-אמנותי"},{name:"חדשנות"},{name:"פיסול"},
+            {name:"סיפור-סיפורים"},{name:"כתיבה"},{name:"צילום"},
+            {name:"קולנוע"},{name:"כוריאוגרפיה"}
+          ]
+        },
+        {
+          name: "תהליך-טכנולוגי",
+          children: [
+            {name:"הרכבה"},{name:"חישוב"},{name:"אחסון-נתונים"},{name:"תכנות"},
+            {name:"הצפנה"},{name:"דחיסה"},{name:"עיבוד"},{name:"ייצור"},
+            {name:"הדמיה"},{name:"אוטומציה"},{name:"העברת-נתונים"},
+            {name:"רובוטיקה"},{name:"בינה-מלאכותית"}
+          ]
+        },
+        {
+          name: "תהליך-חברתי",
+          children: [
+            {name:"תקשורת"},{name:"שיתוף-פעולה"},{name:"תחרות"},{name:"הסכם"},
+            {name:"משא-ומתן"},{name:"קונפליקט"},{name:"חינוך"},{name:"ניהול"},
+            {name:"ארגון"},{name:"מנהיגות"},{name:"שכנוע"},{name:"השפעה"},
+            {name:"מסחר"},{name:"פוליטיקה"},{name:"סוציאליזציה"},
+            {name:"משפט"},{name:"פשרה"}
+          ]
+        },
+        {name:"תהליך-נפשי"},{name:"תהליך-פסיכולוגי-חברתי"},
+        {name:"תהליך-תקשורתי"},{name:"תהליך-כלכלי"},{name:"תהליך-אבולוציוני"}
+      ]
+    },
+    {
+      name: "ישות (Entity)",
+      color: "#8b5cf6",
+      children: [
+        {
+          name: "אובייקט",
+          children: [
+            {name:"חפץ-מעשה-ידי-אדם"},
+            {name:"אובייקט-טבעי"},
+            {name:"מבנה"}
+          ]
+        },
+        {name:"ישות-מופשטת"},{name:"אירוע"},{name:"מקום"},
+        {name:"ישות-חברתית"},{name:"ישות-ביולוגית"}
+      ]
+    },
+    {
+      name: "ייצוג (Representation)",
+      color: "#ec4899",
+      children: [
+        {name:"שפה"},{name:"תמונה"},{name:"מספר"},{name:"מפה"},
+        {name:"מודל"},{name:"סמל"},{name:"קוד"},{name:"נוסחה"}
+      ]
+    },
+    {
+      name: "יחס (Relation)",
+      color: "#f59e0b",
+      children: [
+        {name:"יחס-סיבתי"},{name:"יחס-מרחבי"},
+        {
+          name: "יחס-זמני",
+          children: [
+            {name:"רצף"},{name:"בו-זמנית"},{name:"לפני"},{name:"סיום"},
+            {name:"התחלה"},{name:"משך"},{name:"תדירות"},{name:"חפיפה"},
+            {name:"אחרי"},{name:"במהלך"}
+          ]
+        },
+        {name:"יחס-חברתי"},{name:"תפקיד"},{name:"יחס-מבני"},
+        {name:"יחס-לוגי"},{name:"יחס-נורמטיבי"},{name:"יחס-כמותי"}
+      ]
+    },
+    {
+      name: "תכונה (Property)",
+      color: "#10b981",
+      children: [
+        {name:"תכונה-פיזית"},{name:"תכונה-כימית"},
+        {name:"תכונה-קוגניטיבית"},{name:"תכונה-אסתטית"},
+        {name:"תכונה-חברתית"},{name:"תכונה-מתמטית"},
+        {name:"מצב"},{name:"מבנה-תכונה"}
+      ]
+    },
+    {
+      name: "חומר (Matter)",
+      color: "#06b6d4",
+      children: [
+        {name:"חומר"},{name:"קרינה"},{name:"שדה"},{name:"אנרגיה"}
+      ]
+    }
+  ]
+};
+
+let currentMode = 'full';
+
+function countLeaves(node) {
+  if (!node.children || node.children.length === 0) return 1;
+  return node.children.reduce((sum, child) => sum + countLeaves(child), 0);
 }
+
+function getDepth(node, current = 0) {
+  if (!node.children || node.children.length === 0) return current;
+  return Math.max(...node.children.map(c => getDepth(c, current + 1)));
+}
+
+function showTreeView() {
+  setActive('btnTree');
+  hideAll();
+  document.getElementById('tree-view').style.display = 'block';
+  currentMode = 'tree';
+  renderTree();
+}
+
+function showFullView() {
+  setActive('btnFull');
+  hideAll();
+  document.getElementById('full-view').style.display = 'block';
+  currentMode = 'full';
+  renderFullList();
+}
+
+function showTreemap() {
+  setActive('btnTreemap');
+  hideAll();
+  document.getElementById('treemap-view').style.display = 'block';
+  currentMode = 'treemap';
+  renderTreemap();
+}
+
+function showStats() {
+  setActive('btnStats');
+  hideAll();
+  document.getElementById('stats-view').style.display = 'block';
+  currentMode = 'stats';
+  renderStats();
+}
+
+function showSearch() {
+  setActive('btnSearch');
+  hideAll();
+  document.getElementById('search-view').style.display = 'block';
+  currentMode = 'search';
+  setupSearch();
+}
+
+function setActive(btnId) {
+  document.querySelectorAll('#controls button').forEach(b => b.classList.remove('active'));
+  document.getElementById(btnId).classList.add('active');
+}
+
+function hideAll() {
+  document.getElementById('tree-view').style.display = 'none';
+  document.getElementById('full-view').style.display = 'none';
+  document.getElementById('treemap-view').style.display = 'none';
+  document.getElementById('stats-view').style.display = 'none';
+  document.getElementById('search-view').style.display = 'none';
+}
+
+function renderTree() {
+  const width = document.getElementById('tree-view').offsetWidth;
+  const height = window.innerHeight * 0.7;
+  
+  d3.select('#tree-svg').selectAll('*').remove();
+  const svg = d3.select('#tree-svg').attr('width', width).attr('height', height);
+  
+  const g = svg.append('g').attr('transform', 'translate(100,50)');
+  
+  const tree = d3.tree().size([height - 100, width - 300]);
+  const root = d3.hierarchy(data);
+  tree(root);
+  
+  g.selectAll('.link')
+    .data(root.links())
+    .join('path')
+    .attr('class', 'link')
+    .attr('d', d3.linkHorizontal()
+      .x(d => d.y)
+      .y(d => d.x));
+  
+  const node = g.selectAll('.node')
+    .data(root.descendants())
+    .join('g')
+    .attr('class', 'node')
+    .attr('transform', d => `translate(${d.y},${d.x})`);
+  
+  node.append('circle')
+    .attr('class', 'node-circle')
+    .attr('r', 6)
+    .attr('fill', d => d.depth === 0 ? '#7dd3fc' : d.depth === 1 ? d.data.color : d3.color(d.parent.data.color || '#3b82f6').darker(0.5));
+  
+  node.append('text')
+    .attr('class', 'node-text')
+    .attr('x', d => d.children ? -10 : 10)
+    .attr('text-anchor', d => d.children ? 'end' : 'start')
+    .text(d => d.data.name);
+}
+
+function renderFullList() {
+  const container = document.getElementById('tree-list');
+  container.innerHTML = '';
+  
+  function createItem(node, level) {
+    const div = document.createElement('div');
+    div.className = `tree-item level-${level}`;
+    
+    const hasChildren = node.children && node.children.length > 0;
+    const toggleIcon = hasChildren ? '<span class="toggle-icon">▼</span>' : '';
+    
+    div.innerHTML = `${node.name} ${toggleIcon}`;
+    
+    if (node.color) {
+      div.style.borderRightColor = node.color;
+    }
+    
+    container.appendChild(div);
+    
+    if (hasChildren) {
+      const childContainer = document.createElement('div');
+      childContainer.className = 'children-container open';
+      container.appendChild(childContainer);
+      
+      div.addEventListener('click', () => {
+        childContainer.classList.toggle('open');
+        div.querySelector('.toggle-icon').textContent = childContainer.classList.contains('open') ? '▼' : '◀';
+      });
+      
+      node.children.forEach(child => {
+        const childDiv = createItemInContainer(child, level + 1);
+        childContainer.appendChild(childDiv);
+      });
+    }
+  }
+  
+  function createItemInContainer(node, level) {
+    const wrapper = document.createElement('div');
+    
+    const div = document.createElement('div');
+    div.className = `tree-item level-${level}`;
+    
+    const hasChildren = node.children && node.children.length > 0;
+    const toggleIcon = hasChildren ? '<span class="toggle-icon">▼</span>' : '';
+    
+    div.innerHTML = `${node.name} ${toggleIcon}`;
+    wrapper.appendChild(div);
+    
+    if (hasChildren) {
+      const childContainer = document.createElement('div');
+      childContainer.className = 'children-container open';
+      wrapper.appendChild(childContainer);
+      
+      div.addEventListener('click', () => {
+        childContainer.classList.toggle('open');
+        div.querySelector('.toggle-icon').textContent = childContainer.classList.contains('open') ? '▼' : '◀';
+      });
+      
+      node.children.forEach(child => {
+        childContainer.appendChild(createItemInContainer(child, level + 1));
+      });
+    }
+    
+    return wrapper;
+  }
+  
+  createItem(data, 0);
+}
+
+function renderTreemap() {
+  const width = document.getElementById('treemap-view').offsetWidth;
+  const height = window.innerHeight * 0.7;
+  
+  d3.select('#treemap-svg').selectAll('*').remove();
+  const svg = d3.select('#treemap-svg').attr('width', width).attr('height', height);
+  
+  const root = d3.hierarchy(data)
+    .sum(d => d.children ? 0 : 1)
+    .sort((a, b) => b.value - a.value);
+  
+  d3.treemap()
+    .size([width, height])
+    .paddingOuter(4)
+    .paddingInner(2)
+    .round(true)(root);
+  
+  const tooltip = document.getElementById('tooltip');
+  
+  const cell = svg.selectAll('g')
+    .data(root.leaves())
+    .join('g')
+    .attr('transform', d => `translate(${d.x0},${d.y0})`);
+  
+  cell.append('rect')
+    .attr('width', d => d.x1 - d.x0)
+    .attr('height', d => d.y1 - d.y0)
+    .attr('fill', d => {
+      if (!d.parent) return '#1a1f3a';
+      const root = d.ancestors().find(a => a.depth === 1);
+      return d3.color(root?.data?.color || '#3b82f6').brighter(d.depth * 0.2);
+    })
+    .attr('rx', 5)
+    .on('mousemove', (e, d) => {
+      tooltip.style.display = 'block';
+      tooltip.style.left = (e.clientX + 12) + 'px';
+      tooltip.style.top = (e.clientY - 30) + 'px';
+      tooltip.innerHTML = d.data.name + (d.parent ? '<br><small>' + d.parent.data.name + '</small>' : '');
+    })
+    .on('mouseleave', () => {
+      tooltip.style.display = 'none';
+    });
+  
+  cell.each(function(d) {
+    const w = d.x1 - d.x0;
+    const h = d.y1 - d.y0;
+    if (w < 30 || h < 15) return;
+    
+    const fontSize = Math.min(13, w / 8, h / 2);
+    d3.select(this).append('text')
+      .attr('x', w / 2)
+      .attr('y', h / 2)
+      .attr('text-anchor', 'middle')
+      .attr('dominant-baseline', 'middle')
+      .attr('font-size', fontSize)
+      .attr('fill', '#fff')
+      .attr('pointer-events', 'none')
+      .text(d.data.name.length > 20 ? d.data.name.slice(0, 18) + '…' : d.data.name);
+  });
+}
+
+function renderStats() {
+  const total = countLeaves(data);
+  const depth = getDepth(data);
+  const categories = data.children.length;
+  
+  let branchCounts = {};
+  data.children.forEach(cat => {
+    branchCounts[cat.name] = countLeaves(cat);
+  });
+  
+  let html = `
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-num">${total}</div>
+        <div class="stat-label">מושגים כוללים</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">${depth}</div>
+        <div class="stat-label">רמות עומק</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">${categories}</div>
+        <div class="stat-label">קטגוריות ראשיות</div>
+      </div>
+    </div>
+    <h2 style="color:#7dd3fc; margin:30px 0 20px 0; text-align:center;">פילוח לפי קטגוריות</h2>
+    <div class="stat-grid">
+  `;
+  
+  for (let [name, count] of Object.entries(branchCounts)) {
+    const category = data.children.find(c => c.name === name);
+    html += `
+      <div class="stat-card" style="border-right:4px solid ${category.color};">
+        <div class="stat-num">${count}</div>
+        <div class="stat-label">${name}</div>
+      </div>
+    `;
+  }
+  
+  html += '</div>';
+  
+  document.getElementById('stats-view').innerHTML = html;
+}
+
+function setupSearch() {
+  const searchBox = document.getElementById('search-box');
+  const results = document.getElementById('search-results');
+  
+  searchBox.value = '';
+  results.innerHTML = '';
+  
+  searchBox.addEventListener('input', (e) => {
+    const query = e.target.value.trim();
+    if (!query) {
+      results.innerHTML = '';
+      return;
+    }
+    
+    const matches = [];
+    
+    function search(node, path = []) {
+      const nodePath = [...path, node.name];
+      if (node.name.includes(query)) {
+        matches.push(nodePath);
+      }
+      if (node.children) {
+        node.children.forEach(child => search(child, nodePath));
+      }
+    }
+    
+    search(data);
+    
+    if (matches.length === 0) {
+      results.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:30px;">לא נמצאו תוצאות</div>';
+      return;
+    }
+    
+    let html = '<div style="margin-top:20px;">';
+    matches.forEach(path => {
+      const highlighted = path[path.length - 1].replace(query, `<span class="highlight">${query}</span>`);
+      const breadcrumb = path.slice(0, -1).join(' > ');
+      html += `
+        <div class="tree-item" style="margin:10px auto; max-width:800px;">
+          <div style="font-size:1.1rem; margin-bottom:4px;">${highlighted}</div>
+          <div style="font-size:0.85rem; color:#94a3b8;">${breadcrumb}</div>
+        </div>
+      `;
+    });
+    html += '</div>';
+    
+    results.innerHTML = html;
+  });
+}
+
+// Initialize with full view
+showFullView();
 </script>
 </body>
 </html>

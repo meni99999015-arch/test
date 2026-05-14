@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מפת עץ – מושג (Concept)</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#1a1a2e;color:#eee;direction:rtl}
+h1{text-align:center;padding:16px;font-size:1.4rem;color:#e0e0ff}
+#controls{text-align:center;margin-bottom:8px}
+#controls button{margin:3px;padding:6px 14px;border:none;border-radius:20px;cursor:pointer;font-size:.85rem;background:#2d2d5e;color:#ccd;transition:background .2s}
+#controls button:hover,#controls button.active{background:#5555aa;color:#fff}
+#tree{width:100%;max-width:960px;margin:0 auto;padding:0 12px}
+.node{margin:2px 0}
+.node-header{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;cursor:pointer;transition:background .15s}
+.node-header:hover{filter:brightness(1.15)}
+.toggle{width:18px;height:18px;display:flex;align-items:center;justify-content:center;border-radius:4px;background:rgba(255,255,255,.15);font-size:.75rem;flex-shrink:0}
+.label{font-size:.9rem;font-weight:500}
+.meta{font-size:.75rem;opacity:.65;margin-right:auto}
+.children{padding-right:24px;border-right:2px solid rgba(255,255,255,.1);margin-right:9px}
+.level0>.node-header{background:#3a3a6e;font-size:1.1rem}
+.level1>.node-header{background:#e63946cc}
+.level1:nth-child(2)>.node-header{background:#457b9dcc}
+.level1:nth-child(3)>.node-header{background:#2a9d8fcc}
+.level1:nth-child(4)>.node-header{background:#e9c46acc}
+.level1:nth-child(5)>.node-header{background:#f4a261cc}
+.level1:nth-child(6)>.node-header{background:#6a4c93cc}
+.level2>.node-header{background:rgba(255,255,255,.08)}
+.level3>.node-header{background:rgba(255,255,255,.05);font-size:.82rem}
+</style>
+</head>
+<body>
+<h1>מפת עץ – מושג (Concept)</h1>
+<div id="controls">
+<button onclick="expandAll()" class="active">פתח הכל</button>
+<button onclick="collapseAll()">סגור הכל</button>
+</div>
+<div id="tree"></div>
+<script>
+const data={
+name:'מושג (Concept)',url:'https://www.notion.so/Concept-2e8b883b9fc44661a48f6dd0113afc46',
+children:[
+{name:'תהליך (Process)',children:[
+{name:'תהליך-פיזי (Physical Process)',children:[
+{name:'כוח (Force)'},{name:'גל (Wave)'},{name:'אור (Light)'},{name:'חום (Heat)'},{name:'קול (Sound)'},{name:'אנרגיה (Energy)'},{name:'כבידה (Gravity)'},{name:'מגנטיות (Magnetism)'},{name:'תנועה (Motion)'},{name:'לחץ (Pressure)'},{name:'חשמל (Electricity)'},{name:'זרימה (Flow)'},{name:'התנגשות (Collision)'},{name:'רטט (Vibration)'},{name:'חיכוך (Friction)'}
+]},
+{name:'תהליך-ביולוגי (Biological Process)',children:[
+{name:'מטבוליזם (Metabolism)'},{name:'עיכול (Digestion)'},{name:'נשימה (Respiration)'},{name:'תסיסה (Fermentation)'},{name:'פוטוסינתזה (Photosynthesis)'},{name:'הזדקנות (Aging)'},{name:'ריפוי (Healing)'},{name:'חיסון (Immunity)'},{name:'גדילה (Growth)'},{name:'התפתחות (Development)'},{name:'דלקת (Inflammation)'},{name:'ספיגה (Absorption)'},{name:'הפרשה (Secretion)'},{name:'מוות (Death)'},{name:'רבייה (Reproduction)'}
+]},
+{name:'תהליך-קוגניטיבי (Cognitive Process)',children:[
+{name:'תפיסה (Perception)'},{name:'תשומת-לב (Attention)'},{name:'למידה (Learning)'},{name:'זיכרון (Memory)'},{name:'חשיבה (Thinking)'},{name:'דמיון (Imagination)'},{name:'פתרון-בעיות (Problem Solving)'},{name:'שיפוט (Judgment)'},{name:'הנמקה (Reasoning)'},{name:'יצירתיות (Creativity)'},{name:'קבלת-החלטות (Decision Making)'},{name:'הכרה (Recognition)'},{name:'מטא-קוגניציה (Metacognition)'},{name:'קטגוריזציה (Categorization)'},{name:'הבנה (Understanding)'}
+]},
+{name:'תהליך-יצירתי (Creative Process)',children:[
+{name:'הלחנה (Composing)'},{name:'עיצוב (Design)'},{name:'אימפרוביזציה (Improvisation)'},{name:'ציור (Painting)'},{name:'המצאה (Inventing)'},{name:'ביטוי-אמנותי (Artistic Expression)'},{name:'חדשנות (Innovation)'},{name:'פיסול (Sculpting)'},{name:'סיפור-סיפורים (Storytelling)'},{name:'כתיבה (Writing)'},{name:'צילום (Photography)'},{name:'קולנוע (Filmmaking)'},{name:'כוריאוגרפיה (Choreography)'}
+]},
+{name:'תהליך-טכנולוגי (Technological Process)',children:[
+{name:'הרכבה (Assembly)'},{name:'חישוב (Computing)'},{name:'אחסון-נתונים (Data Storage)'},{name:'תכנון (Programming)'},{name:'הצפנה (Encryption)'},{name:'דחיסה (Compression)'},{name:'עיבוד (Processing)'},{name:'ייצור (Manufacturing)'},{name:'הדמיה (Simulation)'},{name:'אוטומציה (Automation)'},{name:'העברת-נתונים (Data Transmission)'},{name:'רובוטיקה (Robotics)'},{name:'בינה-מלאכותית (Artificial Intelligence)'}
+]},
+{name:'תהליך-חברתי (Social Process)',children:[
+{name:'תקשורת (Communication)'},{name:'שיתוף-פעולה (Cooperation)'},{name:'תחרות (Competition)'},{name:'הסכם (Agreement)'},{name:'משא-ומתן (Negotiation)'},{name:'קונפליקט (Conflict)'},{name:'חינוך (Education)'},{name:'ניהול (Management)'},{name:'ארגון (Organization)'},{name:'מנהיגות (Leadership)'},{name:'שכנוע (Persuasion)'},{name:'השפעה (Influence)'},{name:'מסחר (Commerce)'},{name:'פוליטיקה (Politics)'},{name:'סוציאליזציה (Socialization)'},{name:'משפט (Justice)'},{name:'פשרה (Compromise)'}
+]},
+{name:'תהליך-נפשי (Psychological Process)'},
+{name:'תהליך-פסיכולוגי-חברתי (Socio-Psychological Process)'},
+{name:'תהליך-תקשורתי (Communication Process)'},
+{name:'תהליך-כלכלי (Economic Process)'},
+{name:'תהליך-אבולוציוני (Evolutionary Process)'}
+]},
+{name:'ישות (Entity)',children:[
+{name:'אובייקט (Object)',children:[{name:'חפץ-מעשה-ידי-אדם (Artifact)'},{name:'אובייקט-טבעי (Natural Object)'},{name:'מבנה (Structure)'}]},
+{name:'ישות-מופשטת (Abstract Entity)'},
+{name:'אירוע (Event)'},
+{name:'מקום (Place)'},
+{name:'ישות-חברתית (Social Entity)'},
+{name:'ישות-ביולוגית (Biological Entity)'}
+]},
+{name:'ייצוג (Representation)',children:[
+{name:'שפה (Language)'},{name:'תמונה (Image)'},{name:'מספר (Number)'},{name:'מפה (Map)'},{name:'מודל (Model)'},{name:'סמל (Symbol)'},{name:'קוד (Code)'},{name:'נוסחה (Formula)'}
+]},
+{name:'יחס (Relation)',children:[
+{name:'יחס-סיבתי (Causal Relation)'},{name:'יחס-מרחבי (Spatial Relation)'},{name:'יחס-זמני (Temporal Relation)'},{name:'יחס-חברתי (Social Relation)'},{name:'תפקיד (Role)'},{name:'יחס-מבני (Structural Relation)'},{name:'יחס-לוגי (Logical Relation)'},{name:'יחס-נורמטיבי (Normative Relation)'},{name:'יחס-כמותי (Quantitative Relation)'}
+]},
+{name:'תכונה (Property)',children:[
+{name:'תכונה-פיזית (Physical Property)'},{name:'תכונה-כימית (Chemical Property)'},{name:'תכונה-קוגניטיבית (Cognitive Property)'},{name:'תכונה-אסתטית (Aesthetic Property)'},{name:'תכונה-חברתית (Social Property)'},{name:'תכונה-מתמטית (Mathematical Property)'},{name:'מצב (State)'},{name:'מבנה-תכונה (Structure - Property)'}
+]},
+{name:'חומר (Matter)',children:[
+{name:'חומר (Material)'},{name:'קרינה (Radiation)'},{name:'שדה (Field)'},{name:'אנרגיה (Energy)'}
+]}
+]
+};
+function buildNode(node,level){const div=document.createElement('div');div.className=`node level${level}`;const header=document.createElement('div');header.className='node-header';const hasChildren=node.children&&node.children.length>0;if(hasChildren){const tog=document.createElement('span');tog.className='toggle';tog.textContent='−';header.appendChild(tog)}const lbl=document.createElement('span');lbl.className='label';lbl.textContent=node.name;header.appendChild(lbl);if(node.url){const a=document.createElement('a');a.href=node.url;a.textContent='↗';a.style.cssText='color:#aaf;font-size:.75rem;margin-right:6px;text-decoration:none';a.target='_blank';header.appendChild(a)}div.appendChild(header);if(hasChildren){const children=document.createElement('div');children.className='children';node.children.forEach(c=>children.appendChild(buildNode(c,level+1)));div.appendChild(children);header.addEventListener('click',()=>{const open=children.style.display!=='none';children.style.display=open?'none':'block';header.querySelector('.toggle').textContent=open?'+':'−'})}
+return div}
+function expandAll(){document.querySelectorAll('.children').forEach(el=>el.style.display='block');document.querySelectorAll('.toggle').forEach(el=>el.textContent='−')}
+function collapseAll(){document.querySelectorAll('.children').forEach(el=>el.style.display='none');document.querySelectorAll('.toggle').forEach(el=>el.textContent='+')}
+document.getElementById('tree').appendChild(buildNode(data,0));
+</script>
+</body>
+</html>

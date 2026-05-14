@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>עץ הידע - מפת האתר</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #0d1117; color: #e6edf3; margin: 0; padding: 20px; }
+  h1 { text-align: center; color: #58a6ff; font-size: 2em; margin-bottom: 5px; }
+  .subtitle { text-align: center; color: #8b949e; margin-bottom: 20px; font-size: 0.95em; }
+  .stats-bar { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-bottom: 30px; }
+  .stat-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 15px 25px; text-align: center; min-width: 130px; }
+  .stat-card .num { font-size: 2.2em; font-weight: bold; color: #58a6ff; }
+  .stat-card .label { font-size: 0.8em; color: #8b949e; margin-top: 4px; }
+  .progress-wrap { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 20px; margin-bottom: 30px; max-width: 700px; margin-left: auto; margin-right: auto; }
+  .progress-title { text-align: center; margin-bottom: 10px; font-size: 1em; color: #8b949e; }
+  .progress-bar-bg { background: #21262d; border-radius: 20px; height: 22px; overflow: hidden; }
+  .progress-bar-fill { background: linear-gradient(90deg, #238636, #58a6ff); height: 100%; border-radius: 20px; transition: width 1s; }
+  .progress-pct { text-align: center; margin-top: 8px; font-size: 1.1em; color: #58a6ff; }
+  .tree-container { max-width: 900px; margin: 0 auto; }
+  .node { margin: 6px 0; }
+  .node-header { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px 14px; border-radius: 8px; background: #161b22; border: 1px solid #30363d; transition: background 0.2s; }
+  .node-header:hover { background: #21262d; }
+  .node-toggle { color: #58a6ff; font-weight: bold; font-size: 1.1em; width: 16px; }
+  .node-name { font-weight: bold; }
+  .node-count { margin-right: auto; background: #21262d; border-radius: 12px; padding: 2px 10px; font-size: 0.8em; color: #8b949e; }
+  .children { margin-right: 24px; display: none; }
+  .children.open { display: block; }
+  .leaf { padding: 6px 14px; border-radius: 6px; margin: 3px 0; background: #0d1117; border: 1px solid #21262d; color: #c9d1d9; font-size: 0.9em; }
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 0.75em; margin-right: 6px; }
+  .tag-concept { background: #1f6feb33; color: #58a6ff; border: 1px solid #1f6feb; }
+  .tag-process { background: #23863633; color: #3fb950; border: 1px solid #238636; }
+  .tag-entity { background: #9e6a0333; color: #d29922; border: 1px solid #9e6a03; }
+  .tag-repr { background: #8957e533; color: #bc8cff; border: 1px solid #8957e5; }
+  .tag-relation { background: #bf4b8a33; color: #f778ba; border: 1px solid #bf4b8a; }
+  .tag-property { background: #1b7c8333; color: #39d353; border: 1px solid #1b7c83; }
+  .tag-matter { background: #da3633; color: #fff; border: 1px solid #da3633; }
+</style>
+</head>
+<body>
+<h1>עץ הידע</h1>
+<div class="subtitle">מפת האתר - כולל מצב סטטיסטיקה</div>
+
+<div class="stats-bar">
+  <div class="stat-card"><div class="num" id="total">22</div><div class="label">צמתים ידועים כרגע</div></div>
+  <div class="stat-card"><div class="num">1500</div><div class="label">יעד</div></div>
+  <div class="stat-card"><div class="num">6</div><div class="label">ענפי-על מהשורש</div></div>
+  <div class="stat-card"><div class="num">10</div><div class="label">בנים תחת יחס-זמני</div></div>
+  <div class="stat-card"><div class="num">3</div><div class="label">רמות עומק שנצפו</div></div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-title">התקדמות לקראת 1500 ערכים</div>
+  <div class="progress-bar-bg"><div class="progress-bar-fill" id="pbar" style="width:1.47%"></div></div>
+  <div class="progress-pct">22 / 1500 &nbsp;&#x2022;&nbsp; 1.47%</div>
+</div>
+
+<div class="tree-container">
+  <div class="node">
+    <div class="node-header" onclick="toggle(this)">
+      <span class="node-toggle">&#9654;</span>
+      <span class="tag tag-concept">Concept</span>
+      <span class="node-name">מושג</span>
+      <span class="node-count">שורש המערכת</span>
+    </div>
+    <div class="children">
+      <div class="node">
+        <div class="node-header" onclick="toggle(this)">
+          <span class="node-toggle">&#9654;</span>
+          <span class="tag tag-process">Process</span>
+          <span class="node-name">תהליך</span>
+          <span class="node-count">ענף-על מתוך דף השורש</span>
+        </div>
+        <div class="children">
+          <div class="leaf">יצוג</div>
+          <div class="leaf">יחס</div>
+          <div class="leaf">תכונה</div>
+        </div>
+      </div>
+      <div class="node">
+        <div class="node-header" onclick="toggle(this)">
+          <span class="node-toggle">&#9654;</span>
+          <span class="tag tag-entity">Entity</span>
+          <span class="node-name">ישות</span>
+          <span class="node-count">ענף-על - זהו צמתים משוייכים בסביבת הדף הראשי</span>
+        </div>
+        <div class="children">
+          <div class="node">
+            <div class="node-header" onclick="toggle(this)">
+              <span class="node-toggle">&#9654;</span>
+              <span class="tag tag-relation">Relation</span>
+              <span class="node-name">יחס</span>
+              <span class="node-count">12 בנים</span>
+            </div>
+            <div class="children">
+              <div class="leaf">יחס-זמני</div>
+              <div class="leaf">יחס-מרחבי</div>
+              <div class="leaf">יחס-סיבתי</div>
+              <div class="leaf">יחס-לוגי</div>
+              <div class="leaf">יחס-מתמטי</div>
+              <div class="leaf">יחס-חברתי</div>
+              <div class="leaf">יחס-כמותי</div>
+              <div class="leaf">יחס-אונטולוגי</div>
+              <div class="leaf">יחס-אפיסטמי</div>
+              <div class="leaf">יחס-תפקודי</div>
+              <div class="leaf">יחס-ביולוגי</div>
+              <div class="leaf">יחס-מודאלי</div>
+            </div>
+          </div>
+          <div class="node">
+            <div class="node-header" onclick="toggle(this)">
+              <span class="node-toggle">&#9654;</span>
+              <span class="tag tag-property">Property</span>
+              <span class="node-name">תכונה</span>
+              <span class="node-count">6 בנים</span>
+            </div>
+            <div class="children">
+              <div class="leaf">תכונה פיזית</div>
+              <div class="leaf">תכונה כימית</div>
+              <div class="leaf">תכונה ביולוגית</div>
+              <div class="leaf">תכונה מתמטית</div>
+              <div class="leaf">תכונה חברתית</div>
+              <div class="leaf">תכונה נפשית</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="node">
+        <div class="node-header" onclick="toggle(this)">
+          <span class="node-toggle">&#9654;</span>
+          <span class="tag tag-matter">Matter</span>
+          <span class="node-name">חומר</span>
+          <span class="node-count">צומת משוך</span>
+        </div>
+        <div class="children">
+          <div class="leaf">חומר אורגני</div>
+          <div class="leaf">חומר אנאורגני</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggle(el) {
+  const arrow = el.querySelector('.node-toggle');
+  const children = el.nextElementSibling;
+  if (children && children.classList.contains('children')) {
+    children.classList.toggle('open');
+    arrow.innerHTML = children.classList.contains('open') ? '&#9660;' : '&#9654;';
+  }
+}
+</script>
+</body>
+</html>
